@@ -1,27 +1,27 @@
-import 'package:animeku_v2/page/anime_page/data/home_data.dart';
+import 'package:animeku_v2/model/schedule_anime_model.dart';
 import 'package:animeku_v2/service/api_service.dart';
 import 'package:get/get.dart';
 
-class HomeController extends GetxController {
+class ScheduleController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   
   final _isLoading = false.obs;
-  final _homeData = Rxn<HomeData>();
+  final _scheduleData = Rxn<ScheduleData>();
 
   bool get isLoading => _isLoading.value;
-  HomeData? get homeData => _homeData.value;
+  ScheduleData? get scheduleData => _scheduleData.value;
 
   @override
   void onInit() {
     super.onInit();
-    loadHomeData();
+    loadSchedule();
   }
 
-  Future<void> loadHomeData() async {
+  Future<void> loadSchedule() async {
     try {
       _isLoading.value = true;
-      final data = await _apiService.getHomeData();
-      _homeData.value = data;
+      final data = await _apiService.getSchedule();
+      _scheduleData.value = data;
     } catch (e) {
       Get.snackbar('Error', e.toString());
     } finally {
@@ -31,9 +31,5 @@ class HomeController extends GetxController {
 
   void goToAnimeDetail(String slug) {
     Get.toNamed('/detail', parameters: {'slug': slug});
-  }
-
-  Future<void> refresh() async {
-    await loadHomeData();
   }
 }

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class DetailView extends GetView<DetailController> {
+class DetailPage extends GetView<DetailController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -157,7 +157,7 @@ class DetailView extends GetView<DetailController> {
 
   Widget _buildGenres(anime) {
     if (anime.genres.isEmpty) return const SizedBox();
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -290,7 +290,7 @@ class DetailView extends GetView<DetailController> {
                 margin: const EdgeInsets.only(right: 12),
                 child: GestureDetector(
                   onTap: () {
-                    Get.offNamed('/detail', 
+                    Get.offNamed('/detail',
                         parameters: {'slug': recommendation.slug});
                   },
                   child: Column(

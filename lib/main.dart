@@ -20,6 +20,7 @@ class MyApp extends StatelessWidget {
           elevation: 0,
         ),
         cardColor: const Color(0xFF1F1F1F),
+       
       ),
       initialBinding: InitialBinding(),
       initialRoute: AppPages.INITIAL,

@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class VideoPage extends GetView<VideoController> {
+  late WebViewController webViewController;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,8 +64,8 @@ class VideoPage extends GetView<VideoController> {
         return SingleChildScrollView(
           child: Column(
             children: [
-              // Video Player Section
-              _buildVideoPlayer(episode),
+              // Enhanced Video Player Section
+              _buildEnhancedVideoPlayer(episode),
 
               // Content Section
               _buildContentSection(episode),
@@ -90,24 +93,37 @@ class VideoPage extends GetView<VideoController> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 60,
-              height: 60,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(30),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
+                ),
+                borderRadius: BorderRadius.circular(40),
               ),
-              child: const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                strokeWidth: 3,
+              child: const Padding(
+                padding: EdgeInsets.all(20),
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  strokeWidth: 3,
+                ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Text(
               'Loading episode...',
               style: TextStyle(
-                color: Colors.grey[400],
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+                color: Colors.grey[300],
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Please wait while we prepare your video',
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 14,
               ),
             ),
           ],
@@ -133,49 +149,79 @@ class VideoPage extends GetView<VideoController> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: 100,
+              height: 100,
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(40),
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.red.withOpacity(0.3),
+                    Colors.red.withOpacity(0.1)
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(50),
               ),
               child: Icon(
-                Icons.error_outline,
-                size: 40,
+                Icons.error_outline_rounded,
+                size: 50,
                 color: Colors.red[300],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Text(
-              'Episode not found',
+              'Oops! Episode not found',
               style: TextStyle(
                 color: Colors.grey[300],
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Please try again or go back',
+              'The episode you are looking for might be unavailable',
               style: TextStyle(
                 color: Colors.grey[500],
                 fontSize: 14,
               ),
             ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () => Get.back(),
-              icon: const Icon(Icons.arrow_back),
-              label: const Text('Go Back'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
+            const SizedBox(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => Get.back(),
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  label: const Text('Go Back'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[800],
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 16),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    final slug = Get.parameters['slug'];
+                    if (slug != null) {
+                      controller.loadEpisodeDetail(slug);
+                    }
+                  },
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('Retry'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4A90E2),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -183,7 +229,7 @@ class VideoPage extends GetView<VideoController> {
     );
   }
 
-  Widget _buildVideoPlayer(episode) {
+  Widget _buildEnhancedVideoPlayer(episode) {
     return Container(
       height: 220,
       margin: const EdgeInsets.all(16),
@@ -236,27 +282,27 @@ class VideoPage extends GetView<VideoController> {
       decoration: const BoxDecoration(
         color: Color(0xFF1A1A1A),
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Episode Navigation
             _buildEpisodeNavigation(episode),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
 
             // Episode Info
             _buildEpisodeInfo(episode),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
 
-            // Download Section
-            _buildDownloadSection(episode),
+            // Enhanced Download Section
+            _buildEnhancedDownloadSection(episode),
           ],
         ),
       ),
@@ -266,14 +312,26 @@ class VideoPage extends GetView<VideoController> {
   Widget _buildEpisodeNavigation(episode) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF2A2A2A),
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF2A2A2A),
+            const Color(0xFF252525),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: Colors.white.withOpacity(0.1),
           width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Row(
         children: [
           Expanded(
@@ -283,32 +341,42 @@ class VideoPage extends GetView<VideoController> {
                     ? LinearGradient(
                         colors: [Colors.grey[700]!, Colors.grey[800]!],
                       )
+                    : LinearGradient(
+                        colors: [Colors.grey[900]!, Colors.grey[850]!],
+                      ),
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: episode.hasPreviousEpisode
+                    ? [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
                     : null,
-                color: episode.hasPreviousEpisode ? null : Colors.grey[900],
-                borderRadius: BorderRadius.circular(12),
               ),
               child: ElevatedButton.icon(
                 onPressed: episode.hasPreviousEpisode
                     ? controller.goToPreviousEpisode
                     : null,
-                icon: const Icon(Icons.skip_previous, size: 20),
+                icon: const Icon(Icons.skip_previous_rounded, size: 22),
                 label: const Text(
                   'Previous',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                  style: TextStyle(fontWeight: FontWeight.w700),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   foregroundColor: Colors.white,
                   shadowColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(15),
                   ),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -316,25 +384,35 @@ class VideoPage extends GetView<VideoController> {
                     ? const LinearGradient(
                         colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
                       )
+                    : LinearGradient(
+                        colors: [Colors.grey[900]!, Colors.grey[850]!],
+                      ),
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: episode.hasNextEpisode
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFF4A90E2).withOpacity(0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ]
                     : null,
-                color: episode.hasNextEpisode ? null : Colors.grey[900],
-                borderRadius: BorderRadius.circular(12),
               ),
               child: ElevatedButton.icon(
                 onPressed:
                     episode.hasNextEpisode ? controller.goToNextEpisode : null,
-                icon: const Icon(Icons.skip_next, size: 20),
+                icon: const Icon(Icons.skip_next_rounded, size: 22),
                 label: const Text(
                   'Next',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                  style: TextStyle(fontWeight: FontWeight.w700),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   foregroundColor: Colors.white,
                   shadowColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(15),
                   ),
                 ),
               ),
@@ -348,32 +426,51 @@ class VideoPage extends GetView<VideoController> {
   Widget _buildEpisodeInfo(episode) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF2A2A2A),
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF2A2A2A),
+            const Color(0xFF252525),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: Colors.white.withOpacity(0.1),
           width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF4A90E2).withOpacity(0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
             child: const Icon(
-              Icons.play_arrow,
+              Icons.play_arrow_rounded,
               color: Colors.white,
-              size: 28,
+              size: 32,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -382,46 +479,62 @@ class VideoPage extends GetView<VideoController> {
                   'Now Playing',
                   style: TextStyle(
                     color: Colors.grey[400],
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   episode.episode ?? 'Episode',
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                colors: [
+                  Colors.green.withOpacity(0.3),
+                  Colors.green.withOpacity(0.2),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(25),
+              border: Border.all(
+                color: Colors.green.withOpacity(0.3),
+                width: 1,
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
                     color: Colors.green,
                     shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.green.withOpacity(0.6),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 const Text(
                   'HD',
                   style: TextStyle(
                     color: Colors.green,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
@@ -432,15 +545,27 @@ class VideoPage extends GetView<VideoController> {
     );
   }
 
-  Widget _buildDownloadSection(episode) {
+  Widget _buildEnhancedDownloadSection(episode) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF2A2A2A),
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF2A2A2A),
+            const Color(0xFF252525),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: Colors.white.withOpacity(0.1),
           width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Theme(
         data: ThemeData.dark().copyWith(
@@ -450,46 +575,72 @@ class VideoPage extends GetView<VideoController> {
           backgroundColor: Colors.transparent,
           collapsedBackgroundColor: Colors.transparent,
           title: const Text(
-            'Download Options',
+            'Download Episodes',
             style: TextStyle(
               color: Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              fontSize: 18,
+            ),
+          ),
+          subtitle: const Text(
+            'Choose quality and provider',
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 13,
             ),
           ),
           leading: Container(
-            width: 40,
-            height: 40,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(10),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
+              ),
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF4A90E2).withOpacity(0.4),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: const Icon(
               Icons.download_rounded,
-              color: Colors.blue,
-              size: 22,
+              color: Colors.white,
+              size: 24,
             ),
           ),
           iconColor: Colors.white,
           collapsedIconColor: Colors.grey[400],
           children: [
             Container(
-              margin: const EdgeInsets.only(top: 8),
+              margin: const EdgeInsets.only(
+                  top: 12, left: 16, right: 16, bottom: 16),
               decoration: BoxDecoration(
                 color: const Color(0xFF1F1F1F),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.05),
+                  width: 1,
+                ),
               ),
               child: Column(
                 children: [
                   if (episode.downloadUrls.mp4.isNotEmpty) ...[
-                    _buildFormatHeader('MP4 Format', Icons.video_file),
-                    ...episode.downloadUrls.mp4
-                        .map((quality) => _buildQualitySection(quality, 'MP4')),
+                    _buildEnhancedFormatHeader(
+                        'MP4 Format', Icons.video_file_rounded, Colors.blue),
+                    ...episode.downloadUrls.mp4.map((quality) =>
+                        _buildEnhancedQualitySection(
+                            quality, 'MP4', Colors.blue)),
+                    const SizedBox(height: 12),
                   ],
                   if (episode.downloadUrls.mkv.isNotEmpty) ...[
-                    _buildFormatHeader('MKV Format', Icons.video_library),
-                    ...episode.downloadUrls.mkv
-                        .map((quality) => _buildQualitySection(quality, 'MKV')),
+                    _buildEnhancedFormatHeader('MKV Format',
+                        Icons.video_library_rounded, Colors.purple),
+                    ...episode.downloadUrls.mkv.map((quality) =>
+                        _buildEnhancedQualitySection(
+                            quality, 'MKV', Colors.purple)),
                   ],
                 ],
               ),
@@ -500,18 +651,26 @@ class VideoPage extends GetView<VideoController> {
     );
   }
 
-  Widget _buildFormatHeader(String title, IconData icon) {
+  Widget _buildEnhancedFormatHeader(String title, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          Icon(icon, color: Colors.blue, size: 20),
-          const SizedBox(width: 12),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: 16),
           Text(
             title,
             style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
               color: Colors.white,
             ),
           ),
@@ -520,7 +679,7 @@ class VideoPage extends GetView<VideoController> {
     );
   }
 
-  Widget _buildQualitySection(quality, format) {
+  Widget _buildEnhancedQualitySection(quality, format, Color formatColor) {
     return Theme(
       data: ThemeData.dark().copyWith(
         dividerColor: Colors.transparent,
@@ -533,27 +692,48 @@ class VideoPage extends GetView<VideoController> {
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(6),
+                  color: formatColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: formatColor.withOpacity(0.3),
+                    width: 1,
+                  ),
                 ),
                 child: Text(
                   format,
-                  style: const TextStyle(
-                    color: Colors.orange,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
+                  style: TextStyle(
+                    color: formatColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Text(
                 quality.resolution,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '${quality.urls.length} links',
+                  style: const TextStyle(
+                    color: Colors.green,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -563,53 +743,80 @@ class VideoPage extends GetView<VideoController> {
         collapsedIconColor: Colors.grey[400],
         children: quality.urls.map<Widget>((url) {
           return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F0F0F),
-              borderRadius: BorderRadius.circular(8),
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF0F0F0F),
+                  const Color(0xFF151515),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.white.withOpacity(0.05),
+                color: _getProviderColor(url.provider).withOpacity(0.3),
                 width: 1,
               ),
             ),
             child: ListTile(
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               leading: Container(
-                width: 36,
-                height: 36,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: _getProviderColor(url.provider).withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
+                  gradient: LinearGradient(
+                    colors: [
+                      _getProviderColor(url.provider).withOpacity(0.3),
+                      _getProviderColor(url.provider).withOpacity(0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _getProviderColor(url.provider).withOpacity(0.5),
+                    width: 1,
+                  ),
                 ),
                 child: Icon(
                   _getProviderIcon(url.provider),
                   color: _getProviderColor(url.provider),
-                  size: 18,
+                  size: 20,
                 ),
               ),
               title: Text(
                 url.provider,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+              subtitle: Text(
+                'Tap to download',
+                style: TextStyle(
+                  color: Colors.grey[400],
+                  fontSize: 12,
                 ),
               ),
               trailing: Container(
-                width: 32,
-                height: 32,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
+                  gradient: LinearGradient(
+                    colors: [
+                      _getProviderColor(url.provider).withOpacity(0.3),
+                      _getProviderColor(url.provider).withOpacity(0.2),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
-                  Icons.launch,
-                  color: Colors.blue,
-                  size: 16,
+                child: Icon(
+                  Icons.download_rounded,
+                  color: _getProviderColor(url.provider),
+                  size: 18,
                 ),
               ),
-              onTap: () => _launchUrl(url.url, url.provider),
+              onTap: () => _downloadFromProvider(
+                  url.url, url.provider, quality.resolution, format),
             ),
           );
         }).toList(),
@@ -627,8 +834,12 @@ class VideoPage extends GetView<VideoController> {
         return Icons.insert_drive_file_rounded;
       case 'mediafire':
         return Icons.storage_rounded;
-      case 'zippyshare':
-        return Icons.archive_rounded;
+      case 'pdrain':
+        return Icons.cloud_queue_rounded;
+      case 'acefile':
+        return Icons.description_rounded;
+      case 'kfiles':
+        return Icons.file_present_rounded;
       default:
         return Icons.download_rounded;
     }
@@ -644,16 +855,218 @@ class VideoPage extends GetView<VideoController> {
         return Colors.orange;
       case 'mediafire':
         return Colors.blue;
-      case 'zippyshare':
+      case 'pdrain':
+        return Colors.cyan;
+      case 'acefile':
         return Colors.purple;
+      case 'kfiles':
+        return Colors.teal;
       default:
         return Colors.grey;
     }
   }
 
-  void _launchUrl(String url, String provider) {
-    _showSnackbar('Opening $provider download link...');
-    // Implement URL launcher
+  Future<void> _downloadFromProvider(
+      String url, String provider, String resolution, String format) async {
+    try {
+      // Show download dialog
+      Get.dialog(
+        Dialog(
+          backgroundColor: const Color(0xFF1A1A1A),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF2A2A2A),
+                  const Color(0xFF1A1A1A),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        _getProviderColor(provider),
+                        _getProviderColor(provider).withOpacity(0.7),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Icon(
+                    Icons.download_rounded,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Download Episode',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Provider: $provider',
+                  style: TextStyle(
+                    color: _getProviderColor(provider),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  'Quality: $resolution $format',
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => Get.back(),
+                        icon: const Icon(Icons.close_rounded, size: 18),
+                        label: const Text('Cancel'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[800],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Get.back();
+                          _launchDownloadUrl(url, provider);
+                        },
+                        icon: const Icon(Icons.launch_rounded, size: 18),
+                        label: const Text('Download'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _getProviderColor(provider),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        barrierDismissible: true,
+      );
+    } catch (e) {
+      _showSnackbar('Error: Unable to process download');
+    }
+  }
+
+  Future<void> _launchDownloadUrl(String url, String provider) async {
+    try {
+      final Uri downloadUri = Uri.parse(url);
+
+      if (await canLaunchUrl(downloadUri)) {
+        await launchUrl(
+          downloadUri,
+          mode: LaunchMode.externalApplication,
+        );
+        _showSnackbar('Opening $provider download link...');
+      } else {
+        // Fallback: Open in WebView if external launch fails
+        _openDownloadInWebView(url, provider);
+      }
+    } catch (e) {
+      _showSnackbar('Error: Unable to open download link');
+    }
+  }
+
+  void _openDownloadInWebView(String url, String provider) {
+    Get.to(
+      () => Scaffold(
+        backgroundColor: const Color(0xFF0F0F0F),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF1A1A1A),
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.close, color: Colors.white),
+            onPressed: () => Get.back(),
+          ),
+          title: Text(
+            '$provider Download',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Colors.white),
+              onPressed: () {
+                // Refresh webview if needed
+              },
+            ),
+          ],
+        ),
+        body: WebViewWidget(
+          controller: WebViewController()
+            ..setJavaScriptMode(JavaScriptMode.unrestricted)
+            ..setBackgroundColor(const Color(0xFF000000))
+            ..setNavigationDelegate(
+              NavigationDelegate(
+                onPageStarted: (String url) {
+                  _showSnackbar('Loading download page...');
+                },
+                onPageFinished: (String url) {
+                  _showSnackbar('Download page loaded');
+                },
+              ),
+            )
+            ..loadRequest(Uri.parse(url)),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openVideoInBrowser(String streamUrl) async {
+    try {
+      final Uri videoUri = Uri.parse(streamUrl);
+
+      if (await canLaunchUrl(videoUri)) {
+        await launchUrl(
+          videoUri,
+          mode: LaunchMode.externalApplication,
+        );
+        _showSnackbar('Opening video in external browser...');
+      } else {
+        _showSnackbar('Unable to open video in browser');
+      }
+    } catch (e) {
+      _showSnackbar('Error: Unable to open video link');
+    }
   }
 
   void _showSnackbar(String message) {
@@ -662,16 +1075,34 @@ class VideoPage extends GetView<VideoController> {
       message,
       backgroundColor: const Color(0xFF2A2A2A),
       colorText: Colors.white,
-      borderRadius: 12,
-      margin: const EdgeInsets.all(16),
-      animationDuration: const Duration(milliseconds: 300),
-      duration: const Duration(seconds: 2),
+      borderRadius: 16,
+      margin: const EdgeInsets.all(20),
+      animationDuration: const Duration(milliseconds: 400),
+      duration: const Duration(seconds: 3),
       snackPosition: SnackPosition.BOTTOM,
-      icon: Icon(
-        Icons.info_outline,
-        color: Colors.blue[300],
+      icon: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(
+          Icons.info_outline_rounded,
+          color: Colors.white,
+          size: 16,
+        ),
       ),
       shouldIconPulse: false,
+      boxShadows: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.3),
+          blurRadius: 10,
+          offset: const Offset(0, 5),
+        ),
+      ],
     );
   }
 }

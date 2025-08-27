@@ -32,7 +32,7 @@ class DetailPage extends GetView<DetailController> {
                     const SizedBox(height: 20),
                     if (anime.synopsis.isNotEmpty) _buildSynopsis(anime),
                     const SizedBox(height: 20),
-                    _buildEpisodeList(anime),
+                    _buildEpisodeList(),
                     const SizedBox(height: 20),
                     _buildRecommendations(anime),
                   ],
@@ -221,47 +221,117 @@ class DetailPage extends GetView<DetailController> {
     );
   }
 
-  Widget _buildEpisodeList(anime) {
-    if (anime.episodeLists.isEmpty) return const SizedBox();
+  Widget _buildEpisodeList() {
+    return Obx(() {
+      final displayedEpisodes = controller.displayedEpisodes;
+      if (displayedEpisodes.isEmpty) return const SizedBox();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Episodes',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Card(
-          child: Column(
-            children: anime.episodeLists.map<Widget>((episode) {
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.blue,
-                  child: Text(
-                    episode.episodeNumber.toString(),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Episodes',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (controller.canLoadMoreEpisodes)
+                Text(
+                  'Showing ${displayedEpisodes.length} of ${controller.animeDetail?.episodeLists.length ?? 0}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
                   ),
                 ),
-                title: Text(
-                  episode.episode,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                trailing: const Icon(Icons.play_arrow),
-                onTap: () => controller.watchEpisode(episode.slug),
-              );
-            }).toList(),
+            ],
           ),
-        ),
-      ],
-    );
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ...displayedEpisodes.map<Widget>((episode) {
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.blue,
+                      child: Text(
+                        episode.episodeNumber.toString(),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      episode.episode,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: const Icon(Icons.play_arrow),
+                    onTap: () => controller.watchEpisode(episode.slug),
+                  );
+                }).toList(),
+
+                // Load More Button
+                if (controller.canLoadMoreEpisodes)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      children: [
+                        const Divider(height: 1),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: controller.loadMoreEpisodes,
+                                icon: const Icon(
+                                  Icons.expand_more,
+                                  color: Colors.white,
+                                ),
+                                label: Text(
+                                  'Load More (${controller.remainingEpisodesCount} remaining)',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            OutlinedButton.icon(
+                              onPressed: controller.showAllEpisodes,
+                              icon: const Icon(
+                                Icons.list,
+                                color: Colors.white,
+                              ),
+                              label: const Text(
+                                'Show All',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 16,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      );
+    });
   }
 
   Widget _buildRecommendations(anime) {

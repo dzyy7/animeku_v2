@@ -41,6 +41,7 @@ dependencies:
   video_player: ^2.8.1
   webview_flutter: ^4.4.2
   shimmer: ^3.0.0
+  url_launcher: any
 
 dev_dependencies:
   flutter_test:

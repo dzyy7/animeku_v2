@@ -2,6 +2,7 @@ import 'package:animeku_v2/page/anime_page/menu/home_page.dart';
 import 'package:animeku_v2/page/complete_anime_page/menu/completed_anime_page.dart';
 import 'package:animeku_v2/page/genre_page/menu/genre_page.dart';
 import 'package:animeku_v2/page/schedule/menu/schedule_page.dart';
+import 'package:animeku_v2/page/search_page/menu/search_page.dart';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

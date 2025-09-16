@@ -4,6 +4,7 @@ import 'package:animeku_v2/page/complete_anime_page/controller/complete_anime_co
 import 'package:animeku_v2/page/detail_anime_page/controller/detail_controller.dart';
 import 'package:animeku_v2/page/genre_page/controller/genre_controller.dart';
 import 'package:animeku_v2/page/schedule/controller/schedule_controller.dart';
+import 'package:animeku_v2/page/search_page/controller/search_controller.dart';
 import 'package:animeku_v2/page/video_page/controller/video_controller.dart';
 import 'package:animeku_v2/service/api_service.dart';
 
@@ -23,6 +24,7 @@ class InitialBinding extends Bindings {
     Get.lazyPut<ScheduleController>(() => ScheduleController());
     Get.lazyPut<CompleteAnimeController>(() => CompleteAnimeController());
     Get.lazyPut<GenreController>(() => GenreController());
+    Get.lazyPut<AnimeSearchController>(() => AnimeSearchController());
     Get.lazyPut<GenreAnimeController>(() => GenreAnimeController());
   }
 }

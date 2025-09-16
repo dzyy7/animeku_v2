@@ -104,9 +104,17 @@ class GenreAnimeResponse {
 
   // Fixed to match the actual API response structure
   factory GenreAnimeResponse.fromJson(Map<String, dynamic> json) {
+    final paginationJson = json['pagination'];
+
     return GenreAnimeResponse(
-      paginationData: PaginationData.fromJson(json['pagination'] ??
-          {}), // Changed from 'paginationData' to 'pagination'
+      paginationData: paginationJson is Map<String, dynamic>
+          ? PaginationData.fromJson(paginationJson)
+          : PaginationData(
+              currentPage: 1,
+              lastVisiblePage: 1,
+              hasNextPage: false,
+              hasPreviousPage: false,
+            ),
       anime: (json['anime'] as List? ?? [])
           .map((item) => GenreAnime.fromJson(item))
           .toList(),

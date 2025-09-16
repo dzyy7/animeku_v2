@@ -6,51 +6,11 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class VideoPage extends GetView<VideoController> {
-  late WebViewController webViewController;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F0F),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A1A),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Get.back(),
-        ),
-        title: Obx(() => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  controller.episodeDetail?.episode ?? 'Loading...',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            )),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.fullscreen, color: Colors.white),
-              onPressed: () {
-                SystemChrome.setEnabledSystemUIMode(
-                  SystemUiMode.immersiveSticky,
-                );
-                _showSnackbar('Fullscreen mode activated');
-              },
-            ),
-          ),
-        ],
-      ),
+      appBar: _buildAppBar(),
       body: Obx(() {
         if (controller.isLoading) {
           return _buildLoadingWidget();
@@ -64,10 +24,8 @@ class VideoPage extends GetView<VideoController> {
         return SingleChildScrollView(
           child: Column(
             children: [
-              // Enhanced Video Player Section
               _buildEnhancedVideoPlayer(episode),
-
-              // Content Section
+              _buildServerInfoSection(),
               _buildContentSection(episode),
             ],
           ),
@@ -76,16 +34,66 @@ class VideoPage extends GetView<VideoController> {
     );
   }
 
+  AppBar _buildAppBar() {
+    return AppBar(
+      backgroundColor: const Color(0xFF1A1A1A),
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+        onPressed: () => Get.back(),
+      ),
+      title: Obx(() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            controller.episodeDetail?.episode ?? 'Loading...',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      )),
+      actions: [
+        Obx(() => controller.episodeDetail != null
+            ? Container(
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.video_settings, color: Colors.white),
+                  onPressed: controller.showServerSelection,
+                ),
+              )
+            : const SizedBox()),
+        Container(
+          margin: const EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.fullscreen, color: Colors.white),
+            onPressed: () {
+              SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+              _showSnackbar('Fullscreen mode activated');
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildLoadingWidget() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            const Color(0xFF1A1A1A),
-            const Color(0xFF0F0F0F),
-          ],
+          colors: [Color(0xFF1A1A1A), Color(0xFF0F0F0F)],
         ),
       ),
       child: Center(
@@ -134,14 +142,11 @@ class VideoPage extends GetView<VideoController> {
 
   Widget _buildErrorWidget() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            const Color(0xFF1A1A1A),
-            const Color(0xFF0F0F0F),
-          ],
+          colors: [Color(0xFF1A1A1A), Color(0xFF0F0F0F)],
         ),
       ),
       child: Center(
@@ -247,177 +252,171 @@ class VideoPage extends GetView<VideoController> {
         borderRadius: BorderRadius.circular(16),
         child: Stack(
           children: [
-            WebViewWidget(
-              controller: WebViewController()
-                ..setJavaScriptMode(JavaScriptMode.unrestricted)
-                ..loadRequest(Uri.parse(episode.streamUrl)),
-            ),
-            // Gradient overlay for better aesthetics
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 60,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.6),
-                      Colors.transparent,
-                    ],
+            Obx(() {
+              if (controller.isLoadingStream) {
+                return Container(
+                  color: Colors.black,
+                  child: const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4A90E2)),
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Loading server...',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
                   ),
+                );
+              }
+              
+              if (controller.currentStreamUrl.isEmpty) {
+                return Container(
+                  color: Colors.black,
+                  child: const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.play_circle_outline,
+                          size: 64,
+                          color: Colors.white54,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'No stream available',
+                          style: TextStyle(color: Colors.white54),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              return WebViewWidget(
+                controller: WebViewController()
+                  ..setJavaScriptMode(JavaScriptMode.unrestricted)
+                  ..setBackgroundColor(const Color(0xFF000000))
+                  ..loadRequest(Uri.parse(controller.currentStreamUrl)),
+              );
+            }),
+            
+            // Video overlay controls
+            Positioned(
+              top: 12,
+              right: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(20),
                 ),
+                child: Obx(() => Text(
+                  '${controller.selectedQuality} - ${controller.selectedServer}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                )),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildServerInfoSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2A2A2A), Color(0xFF252525)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.settings_input_antenna,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Current Server',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Obx(() => Text(
+                  controller.selectedServer.isNotEmpty 
+                      ? '${controller.selectedQuality} - ${controller.selectedServer}'
+                      : 'No server selected',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                )),
+              ],
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: controller.showServerSelection,
+            icon: const Icon(Icons.swap_horiz, size: 18),
+            label: const Text('Change'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4A90E2),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildContentSection(episode) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Episode Navigation
-            _buildEpisodeNavigation(episode),
-
-            const SizedBox(height: 28),
-
-            // Episode Info
-            _buildEpisodeInfo(episode),
-
-            const SizedBox(height: 28),
-
-            // Enhanced Download Section
-            _buildEnhancedDownloadSection(episode),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEpisodeNavigation(episode) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF2A2A2A),
-            const Color(0xFF252525),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.1),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Row(
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
         children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: episode.hasPreviousEpisode
-                    ? LinearGradient(
-                        colors: [Colors.grey[700]!, Colors.grey[800]!],
-                      )
-                    : LinearGradient(
-                        colors: [Colors.grey[900]!, Colors.grey[850]!],
-                      ),
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: episode.hasPreviousEpisode
-                    ? [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: ElevatedButton.icon(
-                onPressed: episode.hasPreviousEpisode
-                    ? controller.goToPreviousEpisode
-                    : null,
-                icon: const Icon(Icons.skip_previous_rounded, size: 22),
-                label: const Text(
-                  'Previous',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: Colors.white,
-                  shadowColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: episode.hasNextEpisode
-                    ? const LinearGradient(
-                        colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
-                      )
-                    : LinearGradient(
-                        colors: [Colors.grey[900]!, Colors.grey[850]!],
-                      ),
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: episode.hasNextEpisode
-                    ? [
-                        BoxShadow(
-                          color: const Color(0xFF4A90E2).withOpacity(0.4),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: ElevatedButton.icon(
-                onPressed:
-                    episode.hasNextEpisode ? controller.goToNextEpisode : null,
-                icon: const Icon(Icons.skip_next_rounded, size: 22),
-                label: const Text(
-                  'Next',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: Colors.white,
-                  shadowColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-              ),
-            ),
-          ),
+          _buildEpisodeInfo(episode),
+          const SizedBox(height: 16),
+          _buildEpisodeNavigation(episode),
+          const SizedBox(height: 16),
+          _buildEnhancedDownloadSection(episode),
         ],
       ),
     );
@@ -426,11 +425,8 @@ class VideoPage extends GetView<VideoController> {
   Widget _buildEpisodeInfo(episode) {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF2A2A2A),
-            const Color(0xFF252525),
-          ],
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2A2A2A), Color(0xFF252525)],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
@@ -545,14 +541,122 @@ class VideoPage extends GetView<VideoController> {
     );
   }
 
+  Widget _buildEpisodeNavigation(episode) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2A2A2A), Color(0xFF252525)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: episode.hasPreviousEpisode
+                    ? LinearGradient(
+                        colors: [Colors.grey[700]!, Colors.grey[800]!],
+                      )
+                    : LinearGradient(
+                        colors: [Colors.grey[900]!, Colors.grey[850]!],
+                      ),
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: episode.hasPreviousEpisode
+                    ? [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: ElevatedButton.icon(
+                onPressed: episode.hasPreviousEpisode
+                    ? controller.goToPreviousEpisode
+                    : null,
+                icon: const Icon(Icons.skip_previous_rounded, size: 22),
+                label: const Text(
+                  'Previous',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  shadowColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: episode.hasNextEpisode
+                    ? const LinearGradient(
+                        colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
+                      )
+                    : LinearGradient(
+                        colors: [Colors.grey[900]!, Colors.grey[850]!],
+                      ),
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: episode.hasNextEpisode
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFF4A90E2).withOpacity(0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: ElevatedButton.icon(
+                onPressed:
+                    episode.hasNextEpisode ? controller.goToNextEpisode : null,
+                icon: const Icon(Icons.skip_next_rounded, size: 22),
+                label: const Text(
+                  'Next',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  shadowColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildEnhancedDownloadSection(episode) {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF2A2A2A),
-            const Color(0xFF252525),
-          ],
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2A2A2A), Color(0xFF252525)],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
@@ -568,9 +672,7 @@ class VideoPage extends GetView<VideoController> {
         ],
       ),
       child: Theme(
-        data: ThemeData.dark().copyWith(
-          dividerColor: Colors.transparent,
-        ),
+        data: ThemeData.dark().copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           backgroundColor: Colors.transparent,
           collapsedBackgroundColor: Colors.transparent,
@@ -584,10 +686,7 @@ class VideoPage extends GetView<VideoController> {
           ),
           subtitle: const Text(
             'Choose quality and provider',
-            style: TextStyle(
-              color: Colors.grey,
-              fontSize: 13,
-            ),
+            style: TextStyle(color: Colors.grey, fontSize: 13),
           ),
           leading: Container(
             width: 48,
@@ -628,19 +727,17 @@ class VideoPage extends GetView<VideoController> {
               child: Column(
                 children: [
                   if (episode.downloadUrls.mp4.isNotEmpty) ...[
-                    _buildEnhancedFormatHeader(
+                    _buildFormatHeader(
                         'MP4 Format', Icons.video_file_rounded, Colors.blue),
                     ...episode.downloadUrls.mp4.map((quality) =>
-                        _buildEnhancedQualitySection(
-                            quality, 'MP4', Colors.blue)),
+                        _buildQualitySection(quality, 'MP4', Colors.blue)),
                     const SizedBox(height: 12),
                   ],
                   if (episode.downloadUrls.mkv.isNotEmpty) ...[
-                    _buildEnhancedFormatHeader('MKV Format',
+                    _buildFormatHeader('MKV Format',
                         Icons.video_library_rounded, Colors.purple),
                     ...episode.downloadUrls.mkv.map((quality) =>
-                        _buildEnhancedQualitySection(
-                            quality, 'MKV', Colors.purple)),
+                        _buildQualitySection(quality, 'MKV', Colors.purple)),
                   ],
                 ],
               ),
@@ -651,7 +748,7 @@ class VideoPage extends GetView<VideoController> {
     );
   }
 
-  Widget _buildEnhancedFormatHeader(String title, IconData icon, Color color) {
+  Widget _buildFormatHeader(String title, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -679,11 +776,9 @@ class VideoPage extends GetView<VideoController> {
     );
   }
 
-  Widget _buildEnhancedQualitySection(quality, format, Color formatColor) {
+  Widget _buildQualitySection(quality, format, Color formatColor) {
     return Theme(
-      data: ThemeData.dark().copyWith(
-        dividerColor: Colors.transparent,
-      ),
+      data: ThemeData.dark().copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
         backgroundColor: Colors.transparent,
         collapsedBackgroundColor: Colors.transparent,
@@ -692,8 +787,7 @@ class VideoPage extends GetView<VideoController> {
           child: Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: formatColor.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
@@ -745,11 +839,8 @@ class VideoPage extends GetView<VideoController> {
           return Container(
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFF0F0F0F),
-                  const Color(0xFF151515),
-                ],
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0F0F0F), Color(0xFF151515)],
               ),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
@@ -758,8 +849,7 @@ class VideoPage extends GetView<VideoController> {
               ),
             ),
             child: ListTile(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               leading: Container(
                 width: 44,
                 height: 44,
@@ -792,10 +882,7 @@ class VideoPage extends GetView<VideoController> {
               ),
               subtitle: Text(
                 'Tap to download',
-                style: TextStyle(
-                  color: Colors.grey[400],
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: Colors.grey[400], fontSize: 12),
               ),
               trailing: Container(
                 width: 40,
@@ -869,13 +956,10 @@ class VideoPage extends GetView<VideoController> {
   Future<void> _downloadFromProvider(
       String url, String provider, String resolution, String format) async {
     try {
-      // Show download dialog
       Get.dialog(
         Dialog(
           backgroundColor: const Color(0xFF1A1A1A),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -904,16 +988,16 @@ class VideoPage extends GetView<VideoController> {
                     ),
                     borderRadius: BorderRadius.circular(30),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.download_rounded,
                     color: Colors.white,
                     size: 30,
                   ),
                 ),
                 const SizedBox(height: 20),
-                Text(
+                const Text(
                   'Download Episode',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -996,7 +1080,6 @@ class VideoPage extends GetView<VideoController> {
         );
         _showSnackbar('Opening $provider download link...');
       } else {
-        // Fallback: Open in WebView if external launch fails
         _openDownloadInWebView(url, provider);
       }
     } catch (e) {
@@ -1049,24 +1132,6 @@ class VideoPage extends GetView<VideoController> {
         ),
       ),
     );
-  }
-
-  Future<void> _openVideoInBrowser(String streamUrl) async {
-    try {
-      final Uri videoUri = Uri.parse(streamUrl);
-
-      if (await canLaunchUrl(videoUri)) {
-        await launchUrl(
-          videoUri,
-          mode: LaunchMode.externalApplication,
-        );
-        _showSnackbar('Opening video in external browser...');
-      } else {
-        _showSnackbar('Unable to open video in browser');
-      }
-    } catch (e) {
-      _showSnackbar('Error: Unable to open video link');
-    }
   }
 
   void _showSnackbar(String message) {

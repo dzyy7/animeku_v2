@@ -1,3 +1,58 @@
+class ServerInfo {
+  final String title;
+  final String serverId;
+  final String href;
+
+  ServerInfo({
+    required this.title,
+    required this.serverId,
+    required this.href,
+  });
+
+  factory ServerInfo.fromJson(Map<String, dynamic> json) {
+    return ServerInfo(
+      title: json['title'] ?? '',
+      serverId: json['serverId'] ?? '',
+      href: json['href'] ?? '',
+    );
+  }
+}
+
+class QualityOption {
+  final String title;
+  final List<ServerInfo> serverList;
+
+  QualityOption({
+    required this.title,
+    required this.serverList,
+  });
+
+  factory QualityOption.fromJson(Map<String, dynamic> json) {
+    return QualityOption(
+      title: json['title'] ?? '',
+      serverList: (json['serverList'] as List)
+          .map((item) => ServerInfo.fromJson(item))
+          .toList(),
+    );
+  }
+}
+
+class StreamServers {
+  final List<QualityOption> qualities;
+
+  StreamServers({
+    required this.qualities,
+  });
+
+  factory StreamServers.fromJson(Map<String, dynamic> json) {
+    return StreamServers(
+      qualities: (json['qualities'] as List)
+          .map((item) => QualityOption.fromJson(item))
+          .toList(),
+    );
+  }
+}
+
 class DownloadUrl {
   final String provider;
   final String url;
@@ -113,8 +168,9 @@ class EpisodeDetailData {
   final NextEpisode? nextEpisode;
   final bool hasPreviousEpisode;
   final PreviousEpisode? previousEpisode;
-  final String streamUrl;
+  final String streamUrl; // Keep for backward compatibility
   final DownloadUrls downloadUrls;
+  final StreamServers streamServers; // New field
 
   EpisodeDetailData({
     required this.episode,
@@ -125,6 +181,7 @@ class EpisodeDetailData {
     this.previousEpisode,
     required this.streamUrl,
     required this.downloadUrls,
+    required this.streamServers,
   });
 
   factory EpisodeDetailData.fromJson(Map<String, dynamic> json) {
@@ -141,6 +198,7 @@ class EpisodeDetailData {
           : null,
       streamUrl: json['stream_url'] ?? '',
       downloadUrls: DownloadUrls.fromJson(json['download_urls']),
+      streamServers: StreamServers.fromJson(json['stream_servers']),
     );
   }
 }

@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 
 class GenreController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
-  
+
   final _isLoading = false.obs;
   final _genreListResponse = Rxn<GenreListResponse>();
 
@@ -39,7 +39,7 @@ class GenreController extends GetxController {
 
 class GenreAnimeController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
-  
+
   final _isLoading = false.obs;
   final _isLoadingMore = false.obs;
   final _genreAnimeResponse = Rxn<GenreAnimeResponse>();
@@ -65,14 +65,9 @@ class GenreAnimeController extends GetxController {
 
   Future<void> loadGenreAnime([int page = 1]) async {
     try {
-      if (page == 1) {
-        _isLoading.value = true;
-        _allGenreAnime.clear();
-      } else {
-        _isLoadingMore.value = true;
-      }
-      
+      print("Load genre: $genreSlug | page: $page"); // cek slug yang dilempar
       final data = await _apiService.getAnimeByGenre(genreSlug, page);
+      print("Response: ${data.anime.length} anime");
       _genreAnimeResponse.value = data;
       _allGenreAnime.addAll(data.anime);
     } catch (e) {
